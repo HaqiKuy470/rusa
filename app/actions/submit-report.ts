@@ -5,12 +5,12 @@ import { createClient } from "@/utils/supabase/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-export async function submitReport(formData: FormData) {
+export async function submitReport(prevState: any, formData: FormData) {
   const supabase = await createClient();
 
   // 1. Cek User (Wajib Login untuk melapor, meski nanti anonim di data)
   const { data: { user } } = await supabase.auth.getUser();
-  
+
   if (!user) {
     return { error: "Kamu harus login dulu untuk melapor ya." };
   }

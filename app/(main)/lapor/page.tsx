@@ -1,7 +1,12 @@
+"use client";
+
 import { submitReport } from "@/app/actions/submit-report";
 import { ShieldCheck, LockIcon, Send } from 'lucide-react';
+import { useFormState } from "react-dom";
 
 export default function LaporPage() {
+  const [state, formAction] = useFormState(submitReport, null);
+
   return (
     <div className="min-h-screen bg-[#FDFBF7] py-12 px-4 flex justify-center items-start">
       <div className="max-w-2xl w-full bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
@@ -23,7 +28,13 @@ export default function LaporPage() {
 
         {/* Form Area */}
         <div className="p-8">
-          <form action={submitReport} className="space-y-6">
+          <form action={formAction} className="space-y-6">
+            
+            {state?.error && (
+              <div className="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50 border border-red-100">
+                {state.error}
+              </div>
+            )}
             
             {/* Input Kategori */}
             <div className="space-y-2">

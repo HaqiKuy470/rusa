@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion, useScroll, useTransform, type Variants } from "framer-motion";
 import Link from "next/link";
 import { 
   Heart, Shield, Ear, Mic, Lock, MessageCircle, 
@@ -9,7 +9,7 @@ import {
 import { useRef } from "react";
 
 // Variabel Animasi
-const fadeInUp = {
+const fadeInUp: Variants = {
   hidden: { opacity: 0, y: 30 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeOut" } }
 };

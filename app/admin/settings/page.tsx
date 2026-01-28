@@ -84,7 +84,12 @@ export default async function AdminSettingsPage() {
               Edit Informasi Akun
             </h3>
             
-            <form action={updateAdminProfile} className="space-y-5">
+            <form 
+              action={async (formData) => {
+                await updateAdminProfile(formData);
+              }} 
+              className="space-y-5"
+            >
               <input type="hidden" name="userId" value={user.id} />
               
               <div>
