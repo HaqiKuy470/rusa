@@ -1,0 +1,155 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Role {
+  ADMIN     
+  PENGURUS  
+  ANAK      
+}
+
+enum Status {
+  PENDING   
+  APPROVED  
+  REJECTED  
+}
+
+model Profile {
+  id          String   @id @default(uuid()) 
+  email       String   @unique
+  fullName    String
+  avatarUrl   String?
+  role        Role     @default(ANAK)
+  createdAt   DateTime @default(now())
+  
+  // Relasi-relasi
+  artworks          Artwork[]
+  forumPosts        ForumPost[]
+  forumComments     ForumComment[]
+  reports           Report[]
+  
+  // Relasi Konsultasi (Satu user bisa punya banyak sesi konsultasi)
+  consultations     Consultation[] @relation("StudentConsultations")
+  counselingSessions Consultation[] @relation("CounselorConsultations") // Jika user jadi konselor
+  
+  @@map("profiles")
+}
+model Artwork {
+  id          String   @id @default(uuid())
+  title       String
+  description String?  
+  imageUrl    String   
+  status      Status   @default(PENDING) 
+  feedback    String?  
+  createdAt   DateTime @default(now())
+  
+  isAnonim    Boolean
+  
+  authorId    String
+  author      Profile  @relation(fields: [authorId], references: [id])
+
+  @@map("artworks")
+}
+
+model Consultation {
+  id          String   @id @default(uuid())
+  topic       String   
+  status      String   @default("OPEN") // OPEN, CLOSED
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relasi ke Siswa (Pelapor)
+  studentId   String
+  student     Profile  @relation("StudentConsultations", fields: [studentId], references: [id])
+
+  // Relasi ke Konselor (Opsional, nanti diisi admin/pengurus)
+  counselorId String?
+  counselor   Profile? @relation("CounselorConsultations", fields: [counselorId], references: [id])
+  
+  messages    Message[]
+
+  @@map("consultations")
+}
+
+model Message {
+  id             String       @id @default(uuid())
+  content        String       @db.Text
+  isFromUser     Boolean      @default(true) // True = dari Anak, False = dari Konselor
+  createdAt      DateTime     @default(now())
+  
+  consultationId String
+  consultation   Consultation @relation(fields: [consultationId], references: [id])
+
+  @@map("messages")
+}
+
+model ForumCategory {
+  id          String      @id @default(uuid())
+  name        String      // Contoh: "Dunia Sekolah", "Hobi & Main"
+  slug        String      @unique // Contoh: "dunia-sekolah" (untuk URL)
+  description String
+  icon        String      // Nama icon lucide-react (misal: "Book", "Gamepad")
+  color       String      // Warna tema (misal: "bg-blue-500")
+  
+  posts       ForumPost[]
+  
+  
+  @@map("forum_categories")
+}
+
+model ForumPost {
+  id          String      @id @default(uuid())
+  title       String
+  content     String      @db.Text
+  isPinned    Boolean     @default(false) 
+  createdAt   DateTime    @default(now())
+  
+  // TAMBAHKAN INI:
+  isAnonim    Boolean     @default(false)
+
+  // ... relasi lainnya biarkan sama ...
+  authorId    String
+  author      Profile     @relation(fields: [authorId], references: [id])
+  categoryId  String
+  category    ForumCategory @relation(fields: [categoryId], references: [id])
+  comments    ForumComment[]
+
+  @@map("forum_posts")
+}
+
+model ForumComment {
+  id          String      @id @default(uuid())
+  content     String
+  createdAt   DateTime    @default(now())
+  
+  // Relasi
+  authorId    String
+  author      Profile     @relation(fields: [authorId], references: [id])
+  
+  postId      String
+  post        ForumPost   @relation(fields: [postId], references: [id])
+
+  @@map("forum_comments")
+}
+
+model Report {
+  id          String   @id @default(uuid())
+  category    String   // Contoh: "Bullying Fisik", "Cyberbullying"
+  content     String   @db.Text // Deskripsi kejadian
+  status      Status   @default(PENDING) // Pakai Enum Status yang sudah ada (PENDING/APPROVED/REJECTED)
+  isAnonim    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relasi ke Pelapor (Profile)
+  reporterId  String
+  reporter    Profile  @relation(fields: [reporterId], references: [id])
+
+  @@map("reports") // Nama tabel di database nanti jadi 'reports'
+}
